@@ -1,10 +1,11 @@
 REWARD = -1
 GAMMA = 0.99
 
+
 NUM_ACTIONS = 4
 ACTIONS = [(1,0),(0,1),(-1,0),(0,-1)]
 # down left up right
-ACTIONS_TEXT = ["DOWN", "LEFT", "UP", "RIGHT"]
+ACTIONS_TEXT = ["DOWN", "RIGHT", "UP", "LEFT"]
 
 NUM_ROWS = 3
 NUM_COLS = 3
@@ -35,7 +36,10 @@ def calc_v (env_v ,row, col, action):
     v += 0.8 * get_v(env_v, row, col, action)
     v += 0.1 *  get_v(env_v, row, col, (action+1)%NUM_ACTIONS)
     v *= GAMMA
-    v += -1
+    r = -1
+    if (row == 0 and col == 0) or (row == 0 and col == 2):
+        r = ENV_R[row][col]
+    v+=r
     return v
 
 def value_iteration(env_v,N):
@@ -43,14 +47,14 @@ def value_iteration(env_v,N):
     Bellman Update equation
     """
     for _ in range (0,N):
-        nextv = ENV_R
+        nextv = env_v
 
         for r in range(NUM_ROWS):
             for c in range(NUM_COLS):
                 if (r == 0 and c == 0) or (r == 0 and c == 2):
                     continue
                 nextv[r][c] = max([calc_v(env_v, r, c, action) for action in range(NUM_ACTIONS)]) 
-                
+        
         env_v = nextv
         
     return env_v
@@ -84,12 +88,13 @@ def print_2d_grid(grid, N):
         print(" | ".join(["{:^{width}}".format(str(elem), width=N) for elem in row]))
     print("+" * 4 * N )
 
-diff_r = [100,3,0,-3]
+diff_r = [100,3,0,-3,10]
 
 for r in diff_r:
     print(f"FOR R = {r}")
     ENV_R = [[r,-1,10], [-1,-1,-1], [-1,-1,-1]]
-    V = value_iteration(ENV_R, 10)
+    env_v = [[r,0,10],[0,0,0],[0,0,0]]
+    V = value_iteration(env_v, 100)
     print_2d_grid(V,20)
     print("\n")
     p = get_policy(V)
